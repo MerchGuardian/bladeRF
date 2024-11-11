@@ -334,8 +334,5 @@
 #endif
 
 #ifdef BLADERF_OS_ANDROID
-static inline void pthread_cancel(pthread_t thread) {
-    (void) thread;
-    // Nop
-}
+#define pthread_cancel(thread);
 #endif
