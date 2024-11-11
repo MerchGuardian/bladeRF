@@ -403,6 +403,25 @@ static inline size_t get_install_dir(char *buf, size_t max_len)
     return len;
 }
 
+#elif BLADERF_OS_ANDROID
+/* Nop functions on android. /proc is disabled and the filesystem is sandboxed.
+ * Force users to specify FPGA / firmware paths using explicit APIs. */
+
+static inline size_t get_home_dir(char *buf, size_t max_len)
+{
+    return 0;
+}
+
+static inline size_t get_binary_dir(char *buf, size_t max_len)
+{
+    return 0;
+}
+
+static inline size_t get_install_dir(char *buf, size_t max_len)
+{
+    return 0;
+}
+
 #else
 #error "Unknown OS or missing BLADERF_OS_* definition"
 #endif

@@ -182,6 +182,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     )
 
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Android")
+    set(BLADERF_OS_ANDROID 1)
 else()
     message(FATAL_ERROR "Unsupported host operating system: ${CMAKE_SYSTEM_NAME}")
 endif()

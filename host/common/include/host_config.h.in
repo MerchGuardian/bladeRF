@@ -32,12 +32,13 @@
 #cmakedefine01  BLADERF_OS_OSX
 #cmakedefine01  BLADERF_OS_WINDOWS
 #cmakedefine01  BLADERF_BIG_ENDIAN
+#cmakedefine01  BLADERF_OS_ANDROID
 
-#if !(BLADERF_OS_LINUX || BLADERF_OS_OSX || BLADERF_OS_WINDOWS || BLADERF_OS_FREEBSD)
+#if !(BLADERF_OS_LINUX || BLADERF_OS_OSX || BLADERF_OS_WINDOWS || BLADERF_OS_FREEBSD || BLADERF_OS_ANDROID)
 #   error "Build not configured for any supported operating systems"
 #endif
 
-#if 1 < (BLADERF_OS_LINUX + BLADERF_OS_OSX + BLADERF_OS_WINDOWS + BLADERF_OS_FREEBSD)
+#if 1 < (BLADERF_OS_LINUX + BLADERF_OS_OSX + BLADERF_OS_WINDOWS + BLADERF_OS_FREEBSD + BLADERF_OS_ANDROID)
 #error "Build configured for multiple operating systems"
 #endif
 
@@ -61,7 +62,7 @@
 /*-----------------------
  * Linux
  *---------------------*/
-#if BLADERF_OS_LINUX
+#if BLADERF_OS_LINUX || BLADERF_OS_ANDROID
 #include <endian.h>
 
 #define HOST_TO_LE16(val) htole16(val)
@@ -213,7 +214,7 @@
 /*******************************************************************************
  * Miscellaneous Linux fixups
  ******************************************************************************/
-#if BLADERF_OS_LINUX
+#if BLADERF_OS_LINUX || BLADERF_OS_ANDROID
 
 /* Added here just to keep this out of the other source files. We'll have
  * a few Windows replacements for unistd.h items. */
@@ -330,4 +331,11 @@
 #define EXPLICIT_FALLTHROUGH
 #endif  // __GNUC__ >= 7
 
+#endif
+
+#ifdef BLADERF_OS_ANDROID
+static inline void pthread_cancel(pthread_t thread) {
+    (void) thread;
+    // Nop
+}
 #endif
