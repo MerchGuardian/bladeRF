@@ -164,7 +164,7 @@ out:
     return status;
 }
 
-#ifndef BLADERF_OS_ANDROID
+#if !(BLADERF_OS_ANDROID)
 /* Remove the last entry in a path. This is used to strip the executable name
 * from a path to get the directory that the executable resides in. */
 static size_t strip_last_path_entry(char *buf, char dir_delim)
