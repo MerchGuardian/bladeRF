@@ -1481,6 +1481,7 @@ static int lusb_deinit_stream(void *driver, struct bladerf_stream *stream)
 static const struct usb_fns libusb_fns = {
     FIELD_INIT(.probe, lusb_probe),
     FIELD_INIT(.open, lusb_open),
+    FIELD_INIT(.wrap, lusb_wrap),
     FIELD_INIT(.close, lusb_close),
     FIELD_INIT(.get_vid_pid, lusb_get_vid_pid),
     FIELD_INIT(.get_flash_id, NULL),

@@ -100,6 +100,14 @@ struct usb_fns {
                 struct bladerf_devinfo *info_in,
                 struct bladerf_devinfo *info_out);
 
+    /* Populates the `driver` pointer with a handle for the specific USB driver
+     * based on an existing backend specific device handle.
+     * On success, the driver should fill in `info_out` with the complete
+     * details of the device. */
+    int (*wrap)(void **driver,
+                void *handle,
+                struct bladerf_devinfo *info_out);
+
     void (*close)(void *driver);
 
     int (*get_vid_pid)(void *driver, uint16_t *vid, uint16_t *pid);

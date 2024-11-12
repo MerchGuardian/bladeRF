@@ -171,6 +171,50 @@ int bladerf_open_with_devinfo(struct bladerf **opened_device,
     return 0;
 }
 
+int bladerf_wrap(struct bladerf **opened_device, bladerf_backend backend, void* handle)
+{
+    struct bladerf *dev;
+    unsigned int i;
+    int status; 
+
+    *opened_device = NULL;
+
+    dev = calloc(1, sizeof(struct bladerf));
+    if (dev == NULL) {
+        return BLADERF_ERR_MEM;
+    }
+
+    /* Open backend */
+    status = backend_warp(dev, backend, handle);
+    if (status != 0) {
+        free(dev);
+        return status;
+    } 
+
+    MUTEX_INIT(&dev->lock);
+
+    /* Open board */
+    status = dev->board->open(dev, devinfo);
+
+    if (status < 0) {
+        bladerf_close(dev);
+        return status;
+    }
+
+    /* Load configuration file */
+    status = config_load_options_file(dev);
+
+    if (status < 0) {
+        bladerf_close(dev);
+        return status;
+    }
+
+    *opened_device = dev;
+
+    return 0;
+
+}
+
 int bladerf_get_devinfo(struct bladerf *dev, struct bladerf_devinfo *info)
 {
     if (dev) {

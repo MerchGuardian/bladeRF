@@ -368,6 +368,60 @@ error:
     return status;
 }
 
+static int usb_wrap(struct bladerf *dev, bladerf_backend backend, void *handle)
+{
+    int status;
+    size_t i;
+    struct bladerf_usb *usb;
+
+    usb = malloc(sizeof(*usb));
+    if (usb == NULL) {
+        return BLADERF_ERR_MEM;
+    }
+
+    /* Try each matching usb driver */
+    for (i = 0; i < ARRAY_SIZE(usb_driver_list); i++) {
+        if (backend == BLADERF_BACKEND_ANY
+                || usb_driver_list[i]->id == backend) {
+            usb->fn = usb_driver_list[i]->fn;
+            status = usb->fn->wrap(&usb->driver, handle);
+            if (status == 0) {
+                break;
+            } else if (status == BLADERF_ERR_NODEV) {
+                continue;
+            } else {
+                free(usb);
+                return status;
+            }
+        }
+    }
+
+    /* If no usb driver was found */
+    if (i == ARRAY_SIZE(usb_driver_list)) {
+        free(usb);
+        return BLADERF_ERR_NODEV;
+    }
+
+    /* Default to legacy-mode access until we determine the FPGA is
+     * capable of handling newer request formats */
+    dev->backend = &backend_fns_usb_legacy;
+    dev->backend_data = usb;
+
+    /* Just out of paranoia, put the device into a known state */
+    status = change_setting(dev, USB_IF_NULL);
+    if (status < 0) {
+        log_debug("Failed to switch to USB_IF_NULL\n");
+        goto error;
+    }
+
+error:
+    if (status != 0) {
+        usb_close(dev);
+    }
+
+    return status;
+}
+
 static int usb_get_vid_pid(struct bladerf *dev, uint16_t *vid, uint16_t *pid)
 {
     struct bladerf_usb *usb = dev->backend_data;
@@ -1209,6 +1263,7 @@ const struct backend_fns backend_fns_usb_legacy = {
     FIELD_INIT(.get_vid_pid, usb_get_vid_pid),
     FIELD_INIT(.get_flash_id, usb_get_flash_id),
     FIELD_INIT(.open, usb_open),
+    FIELD_INIT(.wrap, usb_wrap),
     FIELD_INIT(.set_fpga_protocol, usb_set_fpga_protocol),
     FIELD_INIT(.close, usb_close),
 
