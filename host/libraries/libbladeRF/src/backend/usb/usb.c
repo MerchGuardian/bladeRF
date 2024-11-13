@@ -1377,6 +1377,7 @@ const struct backend_fns backend_fns_usb = {
     FIELD_INIT(.get_vid_pid, usb_get_vid_pid),
     FIELD_INIT(.get_flash_id, usb_get_flash_id),
     FIELD_INIT(.open, usb_open),
+    FIELD_INIT(.wrap, usb_wrap),
     FIELD_INIT(.set_fpga_protocol, usb_set_fpga_protocol),
     FIELD_INIT(.close, usb_close),
 

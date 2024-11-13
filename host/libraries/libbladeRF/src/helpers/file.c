@@ -440,7 +440,6 @@ static inline size_t get_install_dir(char *buf, size_t max_len)
 
 char *file_find(const char *filename)
 {
-    printf("Looking for file %s\n", filename);
     size_t i, max_len;
     char *full_path;
     const char *env_var;

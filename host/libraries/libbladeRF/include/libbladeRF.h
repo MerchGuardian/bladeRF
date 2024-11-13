@@ -259,7 +259,7 @@ int CALL_CONV bladerf_open_with_devinfo(struct bladerf **device,
  * @return 0 on success, or value from \ref RETCODES list on failure
  */
 API_EXPORT
-int CALL_CONV bladerf_wrap_with_devinfo(struct bladerf **device,
+int CALL_CONV bladerf_wrap(struct bladerf **device,
                            void* handle,
                            bladerf_backend backed);
 

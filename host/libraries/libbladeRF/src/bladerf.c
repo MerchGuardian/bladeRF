@@ -171,10 +171,11 @@ int bladerf_open_with_devinfo(struct bladerf **opened_device,
     return 0;
 }
 
-int bladerf_wrap_with_devinfo(struct bladerf **opened_device, void* handle, bladerf_backend backend)
+int bladerf_wrap(struct bladerf **opened_device, void* handle, bladerf_backend backend)
 {
     struct bladerf *dev;
-    int status; 
+    int status;
+    unsigned int i;
     struct bladerf_devinfo any_device;
     bladerf_init_devinfo(&any_device);
 
@@ -192,10 +193,26 @@ int bladerf_wrap_with_devinfo(struct bladerf **opened_device, void* handle, blad
         return status;
     } 
 
+    log_debug("Finding matching boards\n");
+    /* Find matching board */
+    for (i = 0; i < bladerf_boards_len; i++) {
+        if (bladerf_boards[i]->matches(dev)) {
+            dev->board = bladerf_boards[i];
+            break;
+        }
+    }
+    /* If no matching board was found */
+    if (i == bladerf_boards_len) {
+        dev->backend->close(dev);
+        free(dev);
+        return BLADERF_ERR_NODEV;
+    }
+
     MUTEX_INIT(&dev->lock);
 
     /* Open board */
     status = dev->board->open(dev, &any_device);
+    log_debug("Opened board\n");
 
     if (status < 0) {
         bladerf_close(dev);

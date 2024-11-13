@@ -20,6 +20,7 @@
  */
 
 #include "host_config.h"
+#include "libbladeRF.h"
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
@@ -719,7 +720,6 @@ static int lusb_wrap(void **driver,
     }
 
     dev->context = context;
-    dev->dev = NULL;
 
     status = libusb_wrap_sys_device(context, (intptr_t) sys_handle, &dev->handle);
     log_debug("libusb_wrap_sys_device wrote device handle: %p", dev->handle);
@@ -741,12 +741,17 @@ static int lusb_wrap(void **driver,
         goto out;
     }
 
-    // TODO: get info somehow...
-    const struct bladerf_devinfo *info = NULL;
-    status = create_device_mutex(info, dev);
+    struct libusb_device* libusb_dev = libusb_get_device(dev->handle);
+    dev->dev = libusb_dev;
+    log_debug("Got libusb device from wrapped handle: %p", libusb_dev);
+
+    status = get_devinfo(libusb_dev, info_out);
+    log_debug("Devinfo. Bus %d, addr %d\n", info_out->usb_bus, info_out->usb_addr);
+
+    status = create_device_mutex(info_out, dev);
     if (status < 0) {
-        log_debug("Failed to get device mutex for instance %d: %s\n",
-                  info->instance, bladerf_strerror(status));
+        log_debug("Failed to get device mutex for wrapped device %p: %s\n",
+                  sys_handle, bladerf_strerror(status));
 
         status = error_conv(status);
         goto out;
@@ -772,12 +777,11 @@ out:
          * trying to use the device.
          */
 #       if ENABLE_USB_DEV_RESET_ON_OPEN
-        log_error("Reset on open unsupported when wrapping sys devices\n");
-        lusb_close((void *) dev);
-        return BLADERF_ERR_NODEV;
-# else 
-        *driver = (void *) dev;
+        log_warning("Reset on open unsupported when wrapping sys devices. Device will not be reset\n");
+        // lusb_close((void *) dev);
+        // return BLADERF_ERR_NODEV;
 #       endif
+        *driver = (void *) dev;
     }
 
     return status;

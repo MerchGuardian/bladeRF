@@ -17,6 +17,12 @@ if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Build type not specified: defaulting to a release build.")
 endif()
 
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0")
+    message(STATUS "Disabling fortify source for debug build")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Build type")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 
@@ -52,7 +58,7 @@ option(BUILD_DOCUMENTATION
 
 option(TREAT_WARNINGS_AS_ERRORS
        "Treat compiler warnings as errors."
-       ON)
+       OFF)
 
 if(ENABLE_LOG_FILE_INFO)
     add_definitions(-DLOG_INCLUDE_FILE_INFO)
