@@ -114,7 +114,7 @@ int backend_probe(backend_probe_target probe_target,
     return status;
 }
 
-int backend_wrap(struct bladerf *dev, bladerf_backend backend, void *handle)
+int backend_wrap(struct bladerf *dev, void* handle, bladerf_backend backend)
 {
     size_t i;
     const size_t n_backends = ARRAY_SIZE(backend_list);
@@ -122,7 +122,7 @@ int backend_wrap(struct bladerf *dev, bladerf_backend backend, void *handle)
     for (i = 0; i < n_backends; i++) {
         if (backend == BLADERF_BACKEND_ANY || backend_list[i]->matches(backend)) {
             if (backend_list[i]->wrap != NULL) {
-                int status = backend_list[i]->wrap(dev, handle);
+                int status = backend_list[i]->wrap(dev, handle, backend);
                 if (status != 0) {
                     return status;
                 }

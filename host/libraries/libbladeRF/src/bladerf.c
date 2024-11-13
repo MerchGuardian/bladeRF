@@ -171,11 +171,12 @@ int bladerf_open_with_devinfo(struct bladerf **opened_device,
     return 0;
 }
 
-int bladerf_wrap(struct bladerf **opened_device, bladerf_backend backend, void* handle)
+int bladerf_wrap_with_devinfo(struct bladerf **opened_device, void* handle, bladerf_backend backend)
 {
     struct bladerf *dev;
-    unsigned int i;
     int status; 
+    struct bladerf_devinfo any_device;
+    bladerf_init_devinfo(&any_device);
 
     *opened_device = NULL;
 
@@ -185,7 +186,7 @@ int bladerf_wrap(struct bladerf **opened_device, bladerf_backend backend, void* 
     }
 
     /* Open backend */
-    status = backend_warp(dev, backend, handle);
+    status = backend_wrap(dev, handle, backend);
     if (status != 0) {
         free(dev);
         return status;
@@ -194,7 +195,7 @@ int bladerf_wrap(struct bladerf **opened_device, bladerf_backend backend, void* 
     MUTEX_INIT(&dev->lock);
 
     /* Open board */
-    status = dev->board->open(dev, devinfo);
+    status = dev->board->open(dev, &any_device);
 
     if (status < 0) {
         bladerf_close(dev);

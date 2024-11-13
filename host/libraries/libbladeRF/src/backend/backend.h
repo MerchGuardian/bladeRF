@@ -86,7 +86,7 @@ struct backend_fns {
     int (*open)(struct bladerf *dev, struct bladerf_devinfo *info);
 
     /* Wrap existing backend device handle. Null if wrapping is not supported by the backend */
-    int (*wrap)(struct bladerf *dev, void *handle);
+    int (*wrap)(struct bladerf *dev, void *sys_handle, bladerf_backend backend);
 
     /* Set the FPGA protocol */
     int (*set_fpga_protocol)(struct bladerf *dev,
@@ -336,7 +336,7 @@ int backend_probe(backend_probe_target probe_target,
  *
  * @return  0 on success, BLADERF_ERR_* code on failure
  */
-int backend_wrap(struct bladerf *dev, bladerf_backend backend, void *handle);
+int backend_wrap(struct bladerf *dev, void* handle, bladerf_backend backend);
 
 /**
  * Search for bootloader via provided specification, download firmware,

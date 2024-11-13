@@ -253,15 +253,15 @@ int CALL_CONV bladerf_open_with_devinfo(struct bladerf **device,
  * Open specified device by wrapping a backend specific handle.
  *
  * @param[out]  device    Update with device handle on success
- * @param[in]   backend   Backend to use or BLADERF_BACKEND_ANY
  * @param[in]   handle    Backend specific handle to wrap
+ * @param[in]   backend   Backend to use
  *
  * @return 0 on success, or value from \ref RETCODES list on failure
  */
 API_EXPORT
-int CALL_CONV bladerf_wrap(struct bladerf **device,
-                           bladerf_backend backend, 
-                           void* handle);
+int CALL_CONV bladerf_wrap_with_devinfo(struct bladerf **device,
+                           void* handle,
+                           bladerf_backend backed);
 
 /**
  * Obtain a list of bladeRF devices attached to the system

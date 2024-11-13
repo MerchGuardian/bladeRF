@@ -45,6 +45,8 @@
 #   define LIBUSB_HANDLE_EVENTS_TIMEOUT_NSEC    (15 * 1000)
 #endif
 
+static void lusb_close(void *driver);
+
 struct bladerf_lusb {
     libusb_device           *dev;
     libusb_device_handle    *handle;
@@ -674,6 +676,114 @@ static int lusb_open(void **driver,
 
     return status;
 }
+
+static int lusb_wrap(void **driver,
+                     void *sys_handle,
+                     struct bladerf_devinfo *info_out)
+{
+    int status;
+    struct bladerf_lusb *dev = NULL;
+    libusb_context *context;
+
+    // Disable scanning
+    struct libusb_init_option option = {
+        .option = LIBUSB_OPTION_NO_DEVICE_DISCOVERY,
+        .value.ival = 1,
+    };
+
+    /* Initialize libusb for device tree walking */
+    status = libusb_init_context(&context, &option, 1);
+    if (status) {
+        log_error("Could not initialize libusb: %s\n",
+                  libusb_error_name(status));
+        return error_conv(status);
+    }
+
+    /* We can only print this out when log output is enabled, or else we'll
+     * get snagged by -Werror=unused-but-set-variable */
+#   ifdef LOGGING_ENABLED
+    {
+        char buf[64];
+        get_libusb_version(buf, sizeof(buf));
+        log_verbose("Using libusb version: %s\n", buf);
+    }
+#   endif
+
+    dev = (struct bladerf_lusb *) calloc(1, sizeof(dev[0]));
+    if (dev == NULL) {
+        log_debug("Failed to allocate handle for instance\n");
+
+        /* Report "no device" so we could try again with
+         * another matching device */
+        return BLADERF_ERR_NODEV;
+    }
+
+    dev->context = context;
+    dev->dev = NULL;
+
+    status = libusb_wrap_sys_device(context, (intptr_t) sys_handle, &dev->handle);
+    log_debug("libusb_wrap_sys_device wrote device handle: %p", dev->handle);
+
+    if (status < 0) {
+        log_debug("Failed to wrap device instance %p: %s\n",
+                  sys_handle, libusb_error_name(status));
+
+        status = error_conv(status);
+        goto out;
+    }
+
+    status = libusb_claim_interface(dev->handle, 0);
+    if (status < 0) {
+        log_debug("Failed to claim interface 0 for wrapped device %p: %s\n",
+                  sys_handle, libusb_error_name(status));
+
+        status = error_conv(status);
+        goto out;
+    }
+
+    // TODO: get info somehow...
+    const struct bladerf_devinfo *info = NULL;
+    status = create_device_mutex(info, dev);
+    if (status < 0) {
+        log_debug("Failed to get device mutex for instance %d: %s\n",
+                  info->instance, bladerf_strerror(status));
+
+        status = error_conv(status);
+        goto out;
+    }
+
+out:
+    if (status != 0) {
+        if (dev->handle != NULL) {
+            libusb_close(dev->handle);
+        }
+
+        libusb_exit(context);
+
+        log_debug("Failed to wrap bladeRF on libusb backend: %s\n",
+                bladerf_strerror(status));
+        free(dev);
+    } else {
+        assert(dev != NULL);
+
+        /* Cosmin and Marian from Null Team (null.ro) and YateBTS(.com) found
+         * that it is possible to recover from "Issue #95: Not enough bandwidth
+         * for altsetting" by performing a USB port reset prior to actually
+         * trying to use the device.
+         */
+#       if ENABLE_USB_DEV_RESET_ON_OPEN
+        log_error("Reset on open unsupported when wrapping sys devices\n");
+        lusb_close((void *) dev);
+        return BLADERF_ERR_NODEV;
+# else 
+        *driver = (void *) dev;
+#       endif
+    }
+
+    return status;
+}
+
+
 
 static int lusb_change_setting(void *driver, uint8_t setting)
 {

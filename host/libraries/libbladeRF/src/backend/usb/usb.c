@@ -368,7 +368,7 @@ error:
     return status;
 }
 
-static int usb_wrap(struct bladerf *dev, bladerf_backend backend, void *handle)
+static int usb_wrap(struct bladerf *dev, void *sys_handle, bladerf_backend backend)
 {
     int status;
     size_t i;
@@ -384,7 +384,7 @@ static int usb_wrap(struct bladerf *dev, bladerf_backend backend, void *handle)
         if (backend == BLADERF_BACKEND_ANY
                 || usb_driver_list[i]->id == backend) {
             usb->fn = usb_driver_list[i]->fn;
-            status = usb->fn->wrap(&usb->driver, handle);
+            status = usb->fn->wrap(&usb->driver, sys_handle, &dev->ident);
             if (status == 0) {
                 break;
             } else if (status == BLADERF_ERR_NODEV) {
