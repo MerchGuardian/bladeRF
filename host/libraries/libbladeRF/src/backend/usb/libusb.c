@@ -688,7 +688,7 @@ static int lusb_wrap(void **driver,
 
     // Disable scanning
     struct libusb_init_option option = {
-        .option = LIBUSB_OPTION_NO_DEVICE_DISCOVERY,
+        .option = LIBUSB_OPTION_WEAK_AUTHORITY,
         .value.ival = 1,
     };
 

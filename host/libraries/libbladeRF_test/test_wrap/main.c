@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
                 path = optarg;
                 break;
 
+
             case 'r':
                 reset_on_open = true;
                 break;

@@ -1349,6 +1349,11 @@ exit:
     return status;
 }
 
+int bladerf_load_fpga_buffer(struct bladerf *dev, const uint8_t *buf, size_t buf_size)
+{
+    return dev->board->load_fpga(dev, buf, buf_size);
+}
+
 int bladerf_flash_fpga(struct bladerf *dev, const char *fpga_file)
 {
     uint8_t *buf = NULL;

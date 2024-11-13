@@ -3170,6 +3170,20 @@ API_EXPORT
 int CALL_CONV bladerf_load_fpga(struct bladerf *dev, const char *fpga);
 
 /**
+ * Load device's FPGA from an in memory buffer.
+ *
+ * @note This FPGA configuration will be reset at the next power cycle.
+ *
+ * @param       dev         Device handle
+ * @param[in]   buf         First byte of FPGA bitstream
+ * @param[in]   buf_size    Number of bytes in the bitstream
+ *
+ * @return 0 upon successfully, or a value from \ref RETCODES list on failure
+ */
+API_EXPORT
+int CALL_CONV bladerf_load_fpga_buffer(struct bladerf *dev, const uint8_t *buf, size_t buf_size);
+
+/**
  * Write the provided FPGA image to the bladeRF's SPI flash and enable FPGA
  * loading from SPI flash at power on (also referred to within this project as
  * FPGA "autoloading").
