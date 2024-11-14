@@ -121,9 +121,7 @@ int backend_wrap(struct bladerf *dev, void* handle, bladerf_backend backend)
 
     for (i = 0; i < n_backends; i++) {
         if (backend == BLADERF_BACKEND_ANY || backend_list[i]->matches(backend)) {
-            printf("Found backend: %d\n", backend);
             if (backend_list[i]->wrap != NULL) {
-                printf("Found backend with wrap\n");
                 return backend_list[i]->wrap(dev, handle, backend);
             }
         }
