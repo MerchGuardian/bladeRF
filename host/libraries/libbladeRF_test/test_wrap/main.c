@@ -14,9 +14,9 @@ static const struct option long_options[] = {
     { NULL, 0, NULL, 0 },
 };
 
-void log_cb(const char* msg, size_t len)
+void log_cb(bladerf_log_level level, const char* msg, size_t len)
 {
-    printf("%s", msg);
+    printf("L%d: %s", level, msg);
 }
 
 int main(int argc, char *argv[])

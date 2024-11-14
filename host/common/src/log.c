@@ -34,7 +34,7 @@
 
 static bladerf_log_level filter_level = BLADERF_LOG_LEVEL_INFO;
 
-static void (*callback)(const char*, size_t) = NULL;
+static void (*callback)(bladerf_log_level, const char*, size_t) = NULL;
 
 void log_write(bladerf_log_level level, const char *format, ...)
 {
@@ -42,7 +42,7 @@ void log_write(bladerf_log_level level, const char *format, ...)
     if (level >= filter_level)
     {
         va_list args;
-        void (*cb)(const char*, size_t) = callback;
+        void (*cb)(bladerf_log_level, const char*, size_t) = callback;
 
         /* Write the log message */
         va_start(args, format);
@@ -50,7 +50,7 @@ void log_write(bladerf_log_level level, const char *format, ...)
             char buf[1024];
             int count = vsnprintf(buf, sizeof(buf), format, args);
             size_t null_idx = min(sizeof(buf) - 1, (size_t) count);
-            cb(buf, null_idx);
+            cb(level, buf, null_idx);
         } else {
 #if defined(WIN32) || defined(__CYGWIN__)
             vfprintf(stderr, format, args);
@@ -109,7 +109,7 @@ bladerf_log_level log_get_verbosity()
     return filter_level;
 }
 
-void log_set_callback(void (*cb)(const char*, size_t))
+void log_set_callback(void (*cb)(bladerf_log_level, const char*, size_t))
 {
     callback = cb;
 }

@@ -128,7 +128,7 @@ void log_set_verbosity(bladerf_log_level level);
 
 
 #ifdef LOGGING_ENABLED
-void log_set_callback(void (*cb)(const char*, size_t));
+void log_set_callback(void (*cb)(bladerf_log_level, const char*, size_t));
 #else
 #define log_set_verbosity(cb) do {} while (0)
 #endif

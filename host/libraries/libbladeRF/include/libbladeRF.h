@@ -4458,7 +4458,7 @@ void CALL_CONV bladerf_log_set_verbosity(bladerf_log_level level);
  * @param[in]   callback       The new log callback
  */
 API_EXPORT
-void CALL_CONV bladerf_set_log_callback(void (*cb)(const char*, size_t));
+void CALL_CONV bladerf_set_log_callback(void (*cb)(bladerf_log_level, const char*, size_t));
 
 /** @} (End of FN_LOGGING) */
 
