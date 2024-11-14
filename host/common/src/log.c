@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include <assert.h>
+
 #define min(a, b) a < b ? a : b
 
 static bladerf_log_level filter_level = BLADERF_LOG_LEVEL_INFO;
@@ -47,6 +49,7 @@ void log_write(bladerf_log_level level, const char *format, ...)
         /* Write the log message */
         va_start(args, format);
         if (cb) {
+            assert(false);
             char buf[1024];
             int count = vsnprintf(buf, sizeof(buf), format, args);
             size_t null_idx = min(sizeof(buf) - 1, (size_t) count);
