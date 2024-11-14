@@ -1923,6 +1923,12 @@ void bladerf_set_usb_reset_on_open(bool enabled)
 #endif
 }
 
+void bladerf_set_log_callback(void (*cb)(const char*, size_t))
+{
+    log_set_callback(cb);
+    log_debug("Custom log callback set\n");
+}
+
 /******************************************************************************/
 /* Expansion board APIs */
 /******************************************************************************/

@@ -4444,6 +4444,22 @@ typedef enum {
 API_EXPORT
 void CALL_CONV bladerf_log_set_verbosity(bladerf_log_level level);
 
+/**
+ * Redirects all logging events to the specified log callback.
+ * Call with NULL to stop receiving updates.
+ *
+ * The callback will be called with a null terminated string, and the number of
+ * string bytes (not including the null-terminator).
+ * Most messages include a newline, so adding an additional one isn't required.
+ *
+ * Messages will be filtered according to the current log level, and will not
+ * be printed through the normal means while the log-callback is set.
+ *
+ * @param[in]   callback       The new log callback
+ */
+API_EXPORT
+void CALL_CONV bladerf_set_log_callback(void (*cb)(const char*, size_t));
+
 /** @} (End of FN_LOGGING) */
 
 /**

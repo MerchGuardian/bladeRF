@@ -140,7 +140,7 @@ static int error_conv(int error)
 }
 
 /* Returns libusb error codes */
-static int get_devinfo(libusb_device *dev, struct bladerf_devinfo *info)
+static int get_devinfo(libusb_device *dev, libusb_device_handle *handle_original, struct bladerf_devinfo *info)
 {
     int status = 0;
     libusb_device_handle *handle;
@@ -152,7 +152,13 @@ static int get_devinfo(libusb_device *dev, struct bladerf_devinfo *info)
     info->usb_bus  = libusb_get_bus_number(dev);
     info->usb_addr = libusb_get_device_address(dev);
 
-    status = libusb_open(dev, &handle);
+    if (handle_original) {
+        log_debug("Using existing handle to get dev info\n");
+        handle = handle_original;
+    } else {
+        log_debug("Opening temp device to get dev info\n");
+        status = libusb_open(dev, &handle);
+    }
 
     if (status == 0) {
         status = libusb_get_device_descriptor(dev, &desc);
@@ -169,6 +175,7 @@ static int get_devinfo(libusb_device *dev, struct bladerf_devinfo *info)
                 log_debug("Failed to retrieve serial number\n");
                 memset(info->serial, 0, BLADERF_SERIAL_LENGTH);
             }
+            log_debug("Got serial %p\n", info->serial);
 
             status = libusb_get_string_descriptor_ascii(
                 handle, desc.iManufacturer,
@@ -189,6 +196,9 @@ static int get_devinfo(libusb_device *dev, struct bladerf_devinfo *info)
                 memset(info->product, 0, BLADERF_DESCRIPTION_LENGTH);
             }
 
+            log_debug("Bus %03d Device %03d: %p %p, serial %p\n", info->usb_bus,
+                      info->usb_addr, info->manufacturer, info->product,
+                      info->serial);
             log_debug("Bus %03d Device %03d: %s %s, serial %s\n", info->usb_bus,
                       info->usb_addr, info->manufacturer, info->product,
                       info->serial);
@@ -198,7 +208,9 @@ static int get_devinfo(libusb_device *dev, struct bladerf_devinfo *info)
             }
         }
 
-        libusb_close(handle);
+        if (!handle_original) {
+            libusb_close(handle);
+        }
     }
 
     return status;
@@ -326,7 +338,7 @@ static int lusb_probe(backend_probe_target probe_target,
             bool do_add = true;
 
             /* Open the USB device and get some information */
-            status = get_devinfo(list[i], &info);
+            status = get_devinfo(list[i], NULL, &info);
             if (status) {
                 /* We may not be able to open the device if another driver
                  * (e.g., CyUSB3) is associated with it. Therefore, just log to
@@ -522,7 +534,7 @@ static int find_and_open_device(libusb_context *context,
             log_verbose("Found a bladeRF (idx=%d)\n", i);
 
             /* Open the USB device and get some information */
-            status = get_devinfo(list[i], &curr_info);
+            status = get_devinfo(list[i], NULL, &curr_info);
             if (status < 0) {
 
                 /* Give the user a helpful hint in case the have forgotten
@@ -745,7 +757,7 @@ static int lusb_wrap(void **driver,
     dev->dev = libusb_dev;
     log_debug("Got libusb device from wrapped handle: %p", libusb_dev);
 
-    status = get_devinfo(libusb_dev, info_out);
+    status = get_devinfo(libusb_dev, dev->handle, info_out);
     log_debug("Devinfo. Bus %d, addr %d\n", info_out->usb_bus, info_out->usb_addr);
 
     status = create_device_mutex(info_out, dev);

@@ -14,6 +14,11 @@ static const struct option long_options[] = {
     { NULL, 0, NULL, 0 },
 };
 
+void log_cb(const char* msg, size_t len)
+{
+    printf("%s", msg);
+}
+
 int main(int argc, char *argv[])
 {
     int opt     = 0;
@@ -77,6 +82,7 @@ int main(int argc, char *argv[])
     printf("Got device str %s\n", path);
 
     bladerf_log_set_verbosity(log_level);
+    bladerf_set_log_callback(log_cb);
 
     bladerf_set_usb_reset_on_open(reset_on_open);
 

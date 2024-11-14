@@ -30,7 +30,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#define min(a, b) a < b ? a : b
+
 static bladerf_log_level filter_level = BLADERF_LOG_LEVEL_INFO;
+
+static void (*callback)(const char*, size_t) = NULL;
 
 void log_write(bladerf_log_level level, const char *format, ...)
 {
@@ -38,50 +42,59 @@ void log_write(bladerf_log_level level, const char *format, ...)
     if (level >= filter_level)
     {
         va_list args;
+        void (*cb)(const char*, size_t) = callback;
 
         /* Write the log message */
         va_start(args, format);
+        if (cb) {
+            char buf[1024];
+            int count = vsnprintf(buf, sizeof(buf), format, args);
+            size_t null_idx = min(sizeof(buf) - 1, (size_t) count);
+            cb(buf, null_idx);
+        } else {
 #if defined(WIN32) || defined(__CYGWIN__)
-        vfprintf(stderr, format, args);
+            vfprintf(stderr, format, args);
 #else
 #  if defined (LOG_SYSLOG_ENABLED)
-        {
-            int syslog_level;
+            {
+                int syslog_level;
 
-            switch (level) {
-                case BLADERF_LOG_LEVEL_VERBOSE:
-                case BLADERF_LOG_LEVEL_DEBUG:
-                    syslog_level = LOG_DEBUG;
-                    break;
+                switch (level) {
+                    case BLADERF_LOG_LEVEL_VERBOSE:
+                    case BLADERF_LOG_LEVEL_DEBUG:
+                        syslog_level = LOG_DEBUG;
+                        break;
 
-                case BLADERF_LOG_LEVEL_INFO:
-                    syslog_level = LOG_INFO;
-                    break;
+                    case BLADERF_LOG_LEVEL_INFO:
+                        syslog_level = LOG_INFO;
+                        break;
 
-                case BLADERF_LOG_LEVEL_WARNING:
-                    syslog_level = LOG_WARNING;
-                    break;
+                    case BLADERF_LOG_LEVEL_WARNING:
+                        syslog_level = LOG_WARNING;
+                        break;
 
-                case BLADERF_LOG_LEVEL_ERROR:
-                    syslog_level = LOG_ERR;
-                    break;
+                    case BLADERF_LOG_LEVEL_ERROR:
+                        syslog_level = LOG_ERR;
+                        break;
 
-                case BLADERF_LOG_LEVEL_CRITICAL:
-                    syslog_level = LOG_CRIT;
-                    break;
+                    case BLADERF_LOG_LEVEL_CRITICAL:
+                        syslog_level = LOG_CRIT;
+                        break;
 
-                default:
-                    /* Shouldn't be used, so just route it to a low level */
-                    syslog_level = LOG_DEBUG;
-                    break;
+                    default:
+                        /* Shouldn't be used, so just route it to a low level */
+                        syslog_level = LOG_DEBUG;
+                        break;
+                }
+
+                vsyslog(syslog_level | LOG_USER, format, args);
             }
-
-            vsyslog(syslog_level | LOG_USER, format, args);
-        }
 #  else
-        vfprintf(stderr, format, args);
+            vfprintf(stderr, format, args);
 #  endif
+
 #endif
+        }
         va_end(args);
     }
 }
@@ -94,5 +107,10 @@ void log_set_verbosity(bladerf_log_level level)
 bladerf_log_level log_get_verbosity()
 {
     return filter_level;
+}
+
+void log_set_callback(void (*cb)(const char*, size_t))
+{
+    callback = cb;
 }
 #endif

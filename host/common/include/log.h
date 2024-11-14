@@ -126,6 +126,13 @@ void log_set_verbosity(bladerf_log_level level);
 #define log_set_verbosity(level) do {} while (0)
 #endif
 
+
+#ifdef LOGGING_ENABLED
+void log_set_callback(void (*cb)(const char*, size_t));
+#else
+#define log_set_verbosity(cb) do {} while (0)
+#endif
+
 /**
  * @brief      Gets the current filter level for displayed log messages.
  *
