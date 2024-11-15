@@ -34,9 +34,9 @@
 
 #define min(a, b) a < b ? a : b
 
-static bladerf_log_level filter_level = BLADERF_LOG_LEVEL_INFO;
+static volatile bladerf_log_level filter_level = BLADERF_LOG_LEVEL_INFO;
 
-static void (*callback)(bladerf_log_level, const char*, size_t) = NULL;
+static void (*volatile callback)(bladerf_log_level, const char*, size_t) = NULL;
 
 void log_write(bladerf_log_level level, const char *format, ...)
 {

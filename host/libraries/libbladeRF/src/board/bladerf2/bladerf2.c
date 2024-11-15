@@ -167,6 +167,7 @@ static int _bladerf2_initialize(struct bladerf *dev)
 #endif
     }
 
+    log_debug("Using NIOS II protocol for FPGA.\n");
     /* Set FPGA packet protocol */
     CHECK_STATUS(
         dev->backend->set_fpga_protocol(dev, BACKEND_FPGA_PROTOCOL_NIOSII));
@@ -2240,7 +2241,11 @@ static int bladerf2_load_fpga(struct bladerf *dev,
         RETURN_INVAL("fpga file", "incorrect file size");
     }
 
+    log_debug("DINGUS 1");
+
     CHECK_STATUS(dev->backend->load_fpga(dev, buf, length));
+
+    log_debug("DINGUS 1");
 
     /* Update device state */
     board_data->state = STATE_FPGA_LOADED;

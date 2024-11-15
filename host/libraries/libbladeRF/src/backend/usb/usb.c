@@ -104,6 +104,7 @@ static inline int change_setting(struct bladerf *dev, uint8_t setting)
     struct bladerf_usb *usb = dev->backend_data;
 
     log_verbose("Changing to USB alt setting %u\n", setting);
+    log_debug("Changing to USB alt setting %u\n", setting);
 
     status = usb->fn->change_setting(usb->driver, setting);
     if (status != 0) {
@@ -470,6 +471,8 @@ static int usb_load_fpga(struct bladerf *dev, const uint8_t *image, size_t image
     const unsigned int timeout_ms = (3 * CTRL_TIMEOUT_MS);
     int status;
 
+    log_debug("Switching to FPGA configuration interface");
+
     /* Switch to the FPGA configuration interface */
     status = change_setting(dev, USB_IF_CONFIG);
     if(status < 0) {
@@ -478,6 +481,8 @@ static int usb_load_fpga(struct bladerf *dev, const uint8_t *image, size_t image
         return status;
     }
 
+    log_debug("Starting FPGA programming");
+
     /* Begin programming */
     status = begin_fpga_programming(dev);
     if (status < 0) {
@@ -485,6 +490,7 @@ static int usb_load_fpga(struct bladerf *dev, const uint8_t *image, size_t image
                   bladerf_strerror(status));
         return status;
     }
+    log_debug("Sending FPGA image");
 
     /* Send the file down */
     assert(image_size <= UINT32_MAX);
@@ -497,6 +503,7 @@ static int usb_load_fpga(struct bladerf *dev, const uint8_t *image, size_t image
                   bladerf_strerror(status));
         return status;
     }
+    log_debug("FPGA bitstream transfer completed");
 
     /* Poll FPGA status to determine if programming was a success */
     wait_count = 10;
@@ -521,6 +528,7 @@ static int usb_load_fpga(struct bladerf *dev, const uint8_t *image, size_t image
         log_debug("Timeout while waiting for FPGA configuration status\n");
         return BLADERF_ERR_TIMEOUT;
     }
+    log_debug("FPGA loaded successfully!");
 
     return 0;
 }

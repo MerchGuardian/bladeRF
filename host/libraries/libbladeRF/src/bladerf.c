@@ -1905,6 +1905,8 @@ const char *bladerf_backend_str(bladerf_backend backend)
 void bladerf_log_set_verbosity(bladerf_log_level level)
 {
     log_set_verbosity(level);
+    log_debug("Log verbosity has been set to: %d", level);
+
 #if defined(LOG_SYSLOG_ENABLED)
     log_debug("Log verbosity has been set to: %d", level);
 #endif

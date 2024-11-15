@@ -163,6 +163,7 @@ static int get_devinfo(libusb_device *dev, libusb_device_handle *handle_original
     if (status == 0) {
         status = libusb_get_device_descriptor(dev, &desc);
         if (status != 0) {
+            log_debug("Failed to read descriptor for libusb %p\n", info->serial);
             memset(info->serial, 0, BLADERF_SERIAL_LENGTH);
         } else {
             status = libusb_get_string_descriptor_ascii(
@@ -752,6 +753,7 @@ static int lusb_wrap(void **driver,
         status = error_conv(status);
         goto out;
     }
+    log_debug("Claimed interface 0 for device %p", dev->handle);
 
     struct libusb_device* libusb_dev = libusb_get_device(dev->handle);
     dev->dev = libusb_dev;
@@ -799,12 +801,11 @@ out:
     return status;
 }
 
-
-
 static int lusb_change_setting(void *driver, uint8_t setting)
 {
     struct bladerf_lusb *lusb = (struct bladerf_lusb *) driver;
 
+    log_debug("Setting interface 0 alt setting for %p: %d \n", lusb->handle, setting);
     int status = libusb_set_interface_alt_setting(lusb->handle, 0, setting);
 
     return error_conv(status);
